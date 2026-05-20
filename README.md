@@ -27,7 +27,7 @@ An asynchronous, production-grade backend pipeline built with FastAPI. This syst
 
 ### 1. Clone & Set Up Virtual Environment
 ```bash
-git clone [https://github.com/Abdul-Mannan-Codes/simplifiq-lead-enricher.git](https://github.com/YOUR_USERNAME/simplifiq-lead-enricher.git)
+git clone https://github.com/Abdul-Mannan-Codes/simplifiq-lead-enricher.git
 cd simplifiq-lead-enricher
 python -m venv venv
 source venv/Scripts/activate  # On Windows Windows
