@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SimplifIQ - Lead Generation Dashboard</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --accent-color: #3b82f6;
+            --accent-hover: #2563eb;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --success-color: #10b981;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            padding: 2rem;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            padding: 2.5rem;
+            border-radius: 16px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
+            border: 1px solid #334155;
+        }
+
+        h2 {
+            margin-top: 0;
+            font-size: 1.75rem;
+            text-align: center;
+            letter-spacing: -0.025em;
+        }
+
+        p.subtitle {
+            color: var(--text-muted);
+            text-align: center;
+            margin-bottom: 2rem;
+            font-size: 0.95rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-muted);
+        }
+
+        input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background-color: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            color: var(--text-main);
+            font-size: 1rem;
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+
+        button {
+            width: 100%;
+            padding: 0.75rem;
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-top: 1rem;
+        }
+
+        button:hover {
+            background-color: var(--accent-hover);
+        }
+
+        .alert {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            display: none;
+        }
+
+        .alert-success {
+            background-color: rgba(16, 185, 129, 0.15);
+            border: 1px solid var(--success-color);
+            color: #34d399;
+        }
+
+        .alert-failure {
+            background-color: rgba(239, 68, 68, 0.15);
+            border:1px solid #ef4444;
+            color:#f87171;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="card">
+        <h2>SimplifIQ</h2>
+        <p class="subtitle">Automated Lead Strategic Audit Engine</p>
+        
+        <form id="leadForm">
+            <div class="form-group">
+                <label for="name">Full Name</label>
+                <input type="text" id="name" required placeholder="e.g., John Doe">
+            </div>
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" required placeholder="e.g., john@example.com">
+            </div>
+            <div class="form-group">
+                <label for="company_name">Company Name</label>
+                <input type="text" id="company_name" required placeholder="e.g., Acme Corp">
+            </div>
+            <div class="form-group">
+                <label for="website_url">Website URL</label>
+                <input type="url" id="website_url" required placeholder="e.g., https://acme.com">
+            </div>
+            
+            <button type="submit" id="submitBtn">Launch Pipeline</button>
+        </form>
+
+        <div id="responseAlert" class="alert alert-success"></div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('leadForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const submitBtn = document.getElementById('submitBtn');
+        const alertBox = document.getElementById('responseAlert');
+        
+        // Visual indicator that the pipeline has started
+        submitBtn.disabled = true;
+        submitBtn.innerText = 'Launching Engine...';
+        
+        // Gather values from input fields
+        const payload = {
+            full_name: document.getElementById('name').value,
+            email: document.getElementById('email').value,
+            company_name: document.getElementById('company_name').value,
+            website_url: document.getElementById('website_url').value
+        };
+
+        try {
+            // Hit our live local FastAPI server
+            const response = await fetch('http://127.0.0.1:8000/api/leads', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                // Display success prompt instantly
+                alertBox.classList.add('alert-success');
+                alertBox.classList.remove('alert-failure');
+                alertBox.innerText = data.message;
+                alertBox.style.display = 'block';
+                document.getElementById('leadForm').reset();
+            } else {
+                throw new Error(data.detail || 'An validation error occurred.');
+            }
+        } catch (error) {
+            // Style the banner to look clean and professional (Soft Red)
+            alertBox.classList.remove('alert-success');
+            alertBox.classList.add('alert-failure');
+            
+            // 1. Show a clean, generic message to the end-user
+            alertBox.innerText = "Submission failed. Please check that all fields are filled out correctly.";
+            alertBox.style.display = 'block';
+
+            // 2. Log the raw, ugly JSON validation arrays safely to the dev console for YOU
+            console.error("─── [Backend Validation Error] ───");
+            console.dir(error);
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerText = 'Launch Pipeline';
+        }
+    });
+</script>
+
+</body>
+</html>
