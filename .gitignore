@@ -1,0 +1,16 @@
+# Virtual Environment (Crucial!)
+venv/
+.venv/
+env/
+
+# Python internal caching files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Security: Local Environment variables & Private API keys
+.env
+
+# Output files (prevents committing your test generation results)
+*.pdf
