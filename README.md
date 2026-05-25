@@ -1,6 +1,6 @@
 # SimplifIQ Lead Enricher & Strategic Audit Engine
 
-An asynchronous, production-grade backend pipeline built with FastAPI. This system accepts incoming sales leads, instantly web-scrapes target business domains, processes raw text using Llama-3.1 via Groq cloud inference, builds polished PDF business briefs, and dispatches them straight to the user via secure SMTP email layers.
+An asynchronous, production-grade backend pipeline built with FastAPI. This system accepts incoming sales leads, orchestrates stealth data extraction via the Haunt API, processes structured JSON payloads using Llama-3.1 via Groq cloud inference, builds polished PDF business briefs, and dispatches them straight to the user via secure SMTP email layers.
 
 ## 🔌 Automated Data Pipeline Architecture
 
