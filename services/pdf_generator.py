@@ -67,14 +67,23 @@ def create_pdf(company_name: str, lead_name: str, ai_insights: str) -> str:
     pdf.set_font("Helvetica", "", 10)
     pdf.set_text_color(55, 65, 81)
     
-    # Since Groq outputs a multi-line string block, we parse it line-by-line
-    # and write it cleanly to the canvas so it handles page wraps automatically.
-    for line in ai_insights.split("\n"):
-        line = line.strip()
-        if line:
-            # Multi_cell ensures long lines wrap around nicely without running off the edge
-            pdf.multi_cell(0, 6, line)
-            pdf.ln(2)
+    # 1. Clean out lingering markdown artifacts
+    clean_insights = ai_insights.replace("**", "")
+
+    # 2. Force a break on any actual newline characters first
+    clean_insights = clean_insights.replace("\n", "<br>")
+
+    # 3. THE FIX: Find every opening bold tag (<b>) and slap line breaks in front of it!
+    # This guarantees that every new section automatically drops down to a fresh line.
+    clean_insights = clean_insights.replace("<b>", "<br><br><b>")
+
+    # 4. Clean up any accidental triple breaks at the very beginning of the text
+    if clean_insights.startswith("<br><br>"):
+        clean_insights = clean_insights.replace("<br><br>", "", 1)
+
+    # 5. Hand the properly spaced layout to the compiler
+    pdf.set_font("Helvetica", size=11)
+    pdf.write_html(clean_insights)
             
     # --- OUTPUT HANDLING ---
     # Save the output file in a clean kebab-case format

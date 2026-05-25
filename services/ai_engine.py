@@ -25,14 +25,35 @@ def generate_insights(company_name: str, scraped_context: str) -> str:
         # 3. Handle real-world limitations (Sensible Fallbacks)
         # If the scraper found text, we give it to the AI. If not, we adjust the instructions.
         if scraped_context:
-            system_instruction = "You are an elite B2B sales strategist and business consultant."
+            system_instruction = (
+            "You are an elite B2B sales strategist and business consultant. "
+            "Your output must be raw text containing only standard text and approved HTML tags. "
+            "Never use markdown formatting under any circumstances. "
+            "If the provided dataset is empty, missing, or contains no actionable information, "
+            "do NOT state that there is no information. Instead, use your deep industry knowledge "
+            "of the company's sector to provide standard, high-value strategic recommendations "
+            "tailored to their business model."
+            )
+
             user_prompt = f"""
-            Analyze this raw website data collected from the company '{company_name}':
+            Analyze this website intelligence data collected from the company '{company_name}':
             ---
             {scraped_context}
             ---
-            Based on this data, provide exactly 3 highly specific, professional, and actionable digital or operational insights/improvements for them. 
-            Do not use markdown bolding (**) or bullet symbols (* or -) in the text response. Keep it clean and readable for a PDF layout.
+            Based on this data, provide exactly 3 or more highly specific, professional, and actionable digital or operational insights/improvements for them.
+
+            FALLBACK INSTRUCTION:
+            If the text between the dashes (---) above is blank, says "No insights generated", or lacks substance, DO NOT print an error or complain about missing data. Instead, assume the persona of an expert consultant for the '{company_name}' industry sector and generate 3 highly relevant, standard strategic optimizations they should implement.
+
+            Strict Formatting Requirements for PDF compilation:
+            1. Wrap key terms or section headers in standard HTML bold tags like <b>Header Name:</b>.
+            2. Wrap words that need emphasis in HTML italic tags like <i>emphasis</i>.
+            3. Do NOT use markdown notation like asterisks (**) or hashes (#) or any other AI formatting notations.
+            4. Ensure every opening HTML tag (e.g., <b>, <i>) is strictly and properly closed with its corresponding closing tag (e.g., </b>, </i>).
+            5. Separate distinct paragraphs or insights with a single standard newline (\\n). Do NOT use emoji symbols, bullet characters, or numbered labels like '1.', '2.', '3.'.
+            6. Keep the text clean, structured, and professional.
+            7. Do NOT include any conversational introduction, prompt acknowledgement, or introductory pleasantries (e.g., do NOT say "Based on the data...", "Here are the insights...", etc.). Start directly with the first insight.
+            8. Write the entire analysis in the second person ("your", "you"), addressing the company ownership directly. Do not refer to the company in the third person ("their", "they").
             """
         else:
             # Fallback prompt if scraping failed

@@ -2,9 +2,9 @@ import os
 from fastapi import FastAPI, BackgroundTasks, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, EmailStr
-
 # Import the specialized helper functions we wrote in our services folder
 from services.scraper import scrape_website
+from services.scraper import extract_company_insights
 from services.ai_engine import generate_insights
 from services.pdf_generator import create_pdf
 from services.email_service import send_report_email
@@ -20,6 +20,7 @@ class Settings(BaseSettings):
     GROQ_API_KEY: str
     SENDER_EMAIL: str = ""
     SENDER_PASSWORD: str = ""
+    HAUNT_API_KEY: str
 
     class Config:
         env_file = ".env"
@@ -30,6 +31,7 @@ try:
     os.environ["GROQ_API_KEY"] = settings.GROQ_API_KEY
     os.environ["SENDER_EMAIL"] = settings.SENDER_EMAIL
     os.environ["SENDER_PASSWORD"] = settings.SENDER_PASSWORD
+    os.environ["HAUNT_API_KEY"] = settings.HAUNT_API_KEY
     print("🚀 [Environment] .env variables loaded successfully into system memory!")
 except Exception as e:
     print(f"⚠️ [Environment] Warning loading .env file: {e}")
@@ -42,14 +44,6 @@ except Exception as e:
 app = FastAPI(
     title="SimplifIQ Lead Automation Engine",
     description="Asynchronously enriches lead info, runs Llama-3 AI analytics, generates custom PDFs, and triggers automated emailing."
-)
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # Allows any local webpage or domain to hit your API endpoints safely
-    allow_credentials=True,
-    allow_methods=["*"],  # Allows POST, GET, etc.
-    allow_headers=["*"],
 )
 
 # 2. Allow our frontend form to talk to our backend (CORS configuration)
@@ -69,7 +63,7 @@ class LeadFormInput(BaseModel):
     website_url: str     # Expects a valid website string URL
 
 # 4. The Core Automation Pipeline Execution Loop
-def automated_onboarding_pipeline(lead: LeadFormInput):
+async def automated_onboarding_pipeline(lead: LeadFormInput):
     """
     This function runs entirely in a background thread.
     It executes the heavy, slow steps one-by-one without blocking the web user.
@@ -77,13 +71,18 @@ def automated_onboarding_pipeline(lead: LeadFormInput):
     print(f"\n⚡ [Pipeline Launched] Processing lead for: {lead.full_name} ({lead.company_name})")
     
     # Step A: Scrape the target website (Defensive programming: returns "" if fails)
-    scraped_context = scrape_website(lead.website_url)
-    print(f"   └─ Step 1 Complete: Web Scraping extracted {len(scraped_context)} characters.")
+    scraped_insights = await extract_company_insights(lead.website_url)
+
+    if isinstance(scraped_insights, dict) and "data" in scraped_insights:
+        haunt_raw_text = str(scraped_insights["data"])
+    else:
+        haunt_raw_text = str(scraped_insights)
+    print(f"   └─ Step 1 Complete: Web Scraping + AI Jsonified insights extracted {len(scraped_insights)} keys using Haunt API.")
     
     # Step B: Call Groq Cloud Llama-3 API for hyper-targeted insights
-    ai_insights = generate_insights(lead.company_name, scraped_context)
-    print("   └─ Step 2 Complete: Llama-3 Insights formulated successfully.")
-    
+    ai_insights = generate_insights(lead.company_name, haunt_raw_text)
+    print(f"   └─ Step 2 Complete: PDF content fetched from LLM")
+
     # Step C: Generate the styled PDF report document
     generated_pdf_filename = create_pdf(lead.company_name, lead.full_name, ai_insights)
     print(f"   └─ Step 3 Complete: Layout compiled. File saved as {generated_pdf_filename}")
