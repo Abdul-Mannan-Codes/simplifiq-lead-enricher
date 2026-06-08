@@ -6,20 +6,20 @@ An asynchronous, production-grade backend pipeline built with FastAPI. This syst
 
 The system processes lead URLs through a robust, dual-layer extraction and parsing pipeline before generating the final strategic brief:
 
-1. **Primary Extraction (Haunt API):** Safely handles protocol injections, bypasses bot detection, and extracts highly structured, clean JSON parameters (`core_services`, `market_positioning`, `icp`).
+1. **Primary Extraction (Haunt API):** Formats raw target domains into resilient HTTP request protocols to extract highly structured, clean JSON parameters (`core_services`, `market_positioning`, `icp`) with honest error handling.
 2. **AI Reasoning Engine (Groq + Llama 3.1):** Consumes the clean JSON payload, applying targeted B2B consulting frameworks to generate actionable insights while enforcing strict HTML compilation tags for pdf compatibility.
 3. **Document Compilation (FPDF2):** Programmatically processes the AI text, applying regex safeguards to clean markdown artifacts and render native inline typography layouts via `write_html()`.
 
 ### 🛡️ Reliability & Failover Mechanisms
 
 * **Data-Absence Fallback:** If a scraped website returns no context or is completely blank, the Groq engine automatically catches the condition and pivots to generating high-value domain-standard optimizations based on the company's industry sector.
-* **Scraper Failover Layer:** In the event of Haunt API token depletion or service downtime, the pipeline is architected to gracefully degrade. The legacy manual scraping module (`BeautifulSoup4`) is retained at the base of the pipeline as an emergency fallback to preserve system uptime.
+* **Scraper Failover Layer:** In the event of network rate limits, target site blocks, or Haunt API token depletion, the pipeline is architected to gracefully degrade. The legacy manual scraping module (`BeautifulSoup4`) is retained at the base of the pipeline as an emergency fallback to preserve system uptime.
 
 ## ⚙️ Architecture & Data Flow
 
 1. **FastAPI Ingestion Endpoint:** Captures incoming lead payloads (`/api/leads`).
 2. **Asynchronous Background Worker:** Immediately releases the HTTP connection back to the client while spawning a background thread execution loop.
-3. **Primary Web Scraper (Haunt API):** Parses target endpoints to extract raw semantic text context or structured business payloads.
+3. **Primary Web Scraper (Haunt API):** Parses target endpoints to extract structured business payloads in structured JSON format.
 4. **AI Inference Engine (Groq / Llama-3.1-8b):** Transforms raw text payloads into highly curated business growth strategies in a direct, client-facing ("your") tone.
 5. **PDF Generator (FPDF2):** Dynamically processes custom-formatted HTML typography strings and builds professional visual reports with native error containment guards.
 6. **SMTP Email Relayer:** Packages assets into multi-part MIMEs and safely delivers them via Google App security protocols.
